@@ -1,0 +1,9 @@
+[package]
+name = "events"
+version = "0.1.0"
+authors = ["Your Name <you@example.com>"]
+
+[dependencies]
+winit = "0.14.0"
+serde_derive = "1.0.55"
+serde = "1.0.55"
