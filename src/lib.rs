@@ -268,7 +268,7 @@ use std::path::PathBuf;
 
 pub struct Events<E> {
 	events_loop: EventsLoop,
-	bindings: HashMap<EventType, fn(Option<(u32, u32)>, Option<(i32, i32)>, Option<(f64, f64)>, Option<PathBuf>) -> E>,
+	bindings: HashMap<EventType, fn((f64, f64), Option<PathBuf>) -> E>,
 	buffer: Vec<E>,
 	chars: Option<Vec<char>>,
 }
@@ -305,11 +305,11 @@ impl<E> Events<E> {
 		::std::mem::replace(&mut self.chars, Some(Vec::new()))
 	}
 	
-	pub fn add_binding(&mut self, typ: EventType, constructor: fn(Option<(u32, u32)>, Option<(i32, i32)>, Option<(f64, f64)>, Option<PathBuf>) -> E) {
+	pub fn add_binding(&mut self, typ: EventType, constructor: fn((f64, f64), Option<PathBuf>) -> E) {
 		self.bindings.insert(typ, constructor);
 	}
 	
-	pub fn add_binding_modifier_ignorant(&mut self, typ: EventType, constructor: fn(Option<(u32, u32)>, Option<(i32, i32)>, Option<(f64, f64)>, Option<PathBuf>) -> E) {
+	pub fn add_binding_modifier_ignorant(&mut self, typ: EventType, constructor: fn((f64, f64), Option<PathBuf>) -> E) {
 		for typ in typ.modifier_combos().iter() {
 			self.add_binding(*typ, constructor);
 		}
@@ -351,9 +351,9 @@ impl<E> Events<E> {
 							modifiers,
 						}, .. } => {
 						if let Some(key) = virtual_keycode {
-							bindings.get(&EventType::KeyPress(key.into(), modifiers.into())).map(|f| buffer.push(f(None, None, None, None)));
+							bindings.get(&EventType::KeyPress(key.into(), modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None)));
 						}
-						bindings.get(&EventType::ScanCodePress(scancode, modifiers.into())).map(|f| buffer.push(f(None, None, None, None)))
+						bindings.get(&EventType::ScanCodePress(scancode, modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None)))
 					},
 					KeyboardInput{ input: winit::KeyboardInput {
 							scancode,
@@ -362,30 +362,29 @@ impl<E> Events<E> {
 							modifiers,
 					}, .. } => {
 						if let Some(key) = virtual_keycode {
-							bindings.get(&EventType::KeyRelease(key.into(), modifiers.into())).map(|f| buffer.push(f(None, None, None, None)));
+							bindings.get(&EventType::KeyRelease(key.into(), modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None)));
 						}
-						bindings.get(&EventType::ScanCodeRelease(scancode, modifiers.into())).map(|f| buffer.push(f(None, None, None, None)))
+						bindings.get(&EventType::ScanCodeRelease(scancode, modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None)))
 					},
 					MouseInput{ state: ElementState::Pressed, button, modifiers, .. } =>
-						bindings.get(&EventType::MousePress(button.into(), modifiers.into())).map(|f| buffer.push(f(None, None, None, None))),
+						bindings.get(&EventType::MousePress(button.into(), modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None))),
 					MouseInput{ state: ElementState::Released, button, modifiers, .. } =>
-						bindings.get(&EventType::MouseRelease(button.into(), modifiers.into())).map(|f| buffer.push(f(None, None, None, None))),
+						bindings.get(&EventType::MouseRelease(button.into(), modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None))),
 					
-					Resized(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f(Some((x,y)), None, None, None))),
-					Moved(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f(None, Some((x,y)), None, None))),
-					CloseRequested | Destroyed => bindings.get(&EventType::Closed).map(|f| buffer.push(f(None, None, None, None))),
-					DroppedFile(path) => bindings.get(&EventType::DroppedFile).map(|f| buffer.push(f(None, None, None, Some(path)))),
-					HoveredFile(path) => bindings.get(&EventType::HoveredFile).map(|f| buffer.push(f(None, None, None, Some(path)))),
-					HoveredFileCancelled => bindings.get(&EventType::HoveredFileCancelled).map(|f| buffer.push(f(None, None, None, None))),
-					ReceivedCharacter(c) => chars.as_mut().map(|mut b| b.push(c)),
-					Focused(true) => bindings.get(&EventType::Focused).map(|f| buffer.push(f(None, None, None, None))),
-					Focused(false) => bindings.get(&EventType::UnFocused).map(|f| buffer.push(f(None, None, None, None))),
-					CursorMoved{ position, .. } => bindings.get(&EventType::MouseMoved).map(|f| buffer.push(f(None, None, Some(position), None))),
-					CursorEntered{ .. } => bindings.get(&EventType::MouseEntered).map(|f| buffer.push(f(None, None, None, None))),
-					CursorLeft{ .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f(None, None, None, None))),
-					MouseWheel{ delta, .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f(None, None, Some(convert_scroll_delta(delta)), None))),
-					MouseWheel{ delta, .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f(None, None, Some(convert_scroll_delta(delta)), None))),
-					Refresh => bindings.get(&EventType::Refresh).map(|f| buffer.push(f(None, None, None, None))),
+					Resized(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64, y as f64), None))),
+					Moved(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64,y as f64), None))),
+					CloseRequested | Destroyed => bindings.get(&EventType::Closed).map(|f| buffer.push(f((0.0, 0.0), None))),
+					DroppedFile(path) => bindings.get(&EventType::DroppedFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
+					HoveredFile(path) => bindings.get(&EventType::HoveredFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
+					HoveredFileCancelled => bindings.get(&EventType::HoveredFileCancelled).map(|f| buffer.push(f((0.0, 0.0), None))),
+					ReceivedCharacter(c) => chars.as_mut().map(|b| b.push(c)),
+					Focused(true) => bindings.get(&EventType::Focused).map(|f| buffer.push(f((0.0, 0.0), None))),
+					Focused(false) => bindings.get(&EventType::UnFocused).map(|f| buffer.push(f((0.0, 0.0), None))),
+					CursorMoved{ position, .. } => bindings.get(&EventType::MouseMoved).map(|f| buffer.push(f(position, None))),
+					CursorEntered{ .. } => bindings.get(&EventType::MouseEntered).map(|f| buffer.push(f((0.0, 0.0), None))),
+					CursorLeft{ .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f((0.0, 0.0), None))),
+					MouseWheel{ delta, .. } => bindings.get(&EventType::MouseWheel).map(|f| buffer.push(f(convert_scroll_delta(delta), None))),
+					Refresh => bindings.get(&EventType::Refresh).map(|f| buffer.push(f((0.0, 0.0), None))),
 					_ => {None},
 				};
 			}
