@@ -373,7 +373,7 @@ impl<E> Events<E> {
 					
 					Resized(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64, y as f64), None))),
 					Moved(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64,y as f64), None))),
-					CloseRequested | Destroyed => bindings.get(&EventType::Closed).map(|f| buffer.push(f((0.0, 0.0), None))),
+					/*CloseRequested | Destroyed*/ Closed => bindings.get(&EventType::Closed).map(|f| buffer.push(f((0.0, 0.0), None))),
 					DroppedFile(path) => bindings.get(&EventType::DroppedFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
 					HoveredFile(path) => bindings.get(&EventType::HoveredFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
 					HoveredFileCancelled => bindings.get(&EventType::HoveredFileCancelled).map(|f| buffer.push(f((0.0, 0.0), None))),
