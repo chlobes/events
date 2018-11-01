@@ -273,10 +273,16 @@ pub struct Events<E> {
 	chars: Option<Vec<char>>,
 }
 
+impl<E> From<EventsLoop> for Events<E> {
+	fn from(e: EventsLoop) -> Self {
+		Self::new(e)
+	}
+}
+
 impl<E> Events<E> {
 	pub fn new(events_loop: EventsLoop) -> Self {
 		Self {
-			events_loop: events_loop,
+			events_loop,
 			bindings: HashMap::new(),
 			buffer: Vec::new(),
 			chars: None,
