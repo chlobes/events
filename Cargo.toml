@@ -4,6 +4,6 @@ version = "0.1.0"
 authors = ["pypypypypypypypypyp"]
 
 [dependencies]
-winit = "0.11.2"
+winit = "0.17.2"
 serde_derive = "1.0.55"
 serde = "1.0.55"

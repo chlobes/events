@@ -377,16 +377,16 @@ impl<E> Events<E> {
 					MouseInput{ state: ElementState::Released, button, modifiers, .. } =>
 						bindings.get(&EventType::MouseRelease(button.into(), modifiers.into())).map(|f| buffer.push(f((0.0, 0.0), None))),
 					
-					Resized(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64, y as f64), None))),
-					Moved(x,y) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f((x as f64,y as f64), None))),
-					/*CloseRequested | Destroyed*/ Closed => bindings.get(&EventType::Closed).map(|f| buffer.push(f((0.0, 0.0), None))),
+					Resized(xy) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f(xy.into(), None))),
+					Moved(xy) => bindings.get(&EventType::WindowResized).map(|f| buffer.push(f(xy.into(), None))),
+					CloseRequested | Destroyed => bindings.get(&EventType::Closed).map(|f| buffer.push(f((0.0, 0.0), None))),
 					DroppedFile(path) => bindings.get(&EventType::DroppedFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
 					HoveredFile(path) => bindings.get(&EventType::HoveredFile).map(|f| buffer.push(f((0.0, 0.0), Some(path)))),
 					HoveredFileCancelled => bindings.get(&EventType::HoveredFileCancelled).map(|f| buffer.push(f((0.0, 0.0), None))),
 					ReceivedCharacter(c) => chars.as_mut().map(|b| b.push(c)),
 					Focused(true) => bindings.get(&EventType::Focused).map(|f| buffer.push(f((0.0, 0.0), None))),
 					Focused(false) => bindings.get(&EventType::UnFocused).map(|f| buffer.push(f((0.0, 0.0), None))),
-					CursorMoved{ position, .. } => bindings.get(&EventType::MouseMoved).map(|f| buffer.push(f(position, None))),
+					CursorMoved{ position, .. } => bindings.get(&EventType::MouseMoved).map(|f| buffer.push(f(position.into(), None))),
 					CursorEntered{ .. } => bindings.get(&EventType::MouseEntered).map(|f| buffer.push(f((0.0, 0.0), None))),
 					CursorLeft{ .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f((0.0, 0.0), None))),
 					MouseWheel{ delta, .. } => bindings.get(&EventType::MouseWheel).map(|f| buffer.push(f(convert_scroll_delta(delta), None))),
@@ -403,6 +403,6 @@ use winit::MouseScrollDelta;
 fn convert_scroll_delta(d: MouseScrollDelta) -> (f64, f64) {
 	match d {
 		MouseScrollDelta::LineDelta(x,y) => (x as f64, y as f64),
-		MouseScrollDelta::PixelDelta(x,y) => (x as f64, y as f64),
+		MouseScrollDelta::PixelDelta(xy) => xy.into(),
 	}
 }
