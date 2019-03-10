@@ -1,7 +1,6 @@
 extern crate winit;
-#[macro_use]
-extern crate serde_derive;
 extern crate serde;
+use serde::{Serialize,Deserialize};
 
 use std::collections::HashMap;
 use std::mem::transmute;

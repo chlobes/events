@@ -5,5 +5,4 @@ authors = ["pypypypypypypypypyp"]
 
 [dependencies]
 winit = "0.18"
-serde_derive = "1.0.55"
-serde = "1.0.55"
+serde = { version = "1.0.89", features = ["derive"] }
