@@ -332,7 +332,7 @@ impl<E> Events<E> {
 	}
 	
 	pub fn next(&mut self) -> Option<E> {
-		if self.buffer.len() > 0 {
+		if !self.buffer.is_empty() {
 			self.buffer.pop()
 		} else {
 			self.fill_buffer();
