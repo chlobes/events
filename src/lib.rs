@@ -207,7 +207,8 @@ pub enum EventType {
 	HoveredFileCancelled,
 	Focused,
 	UnFocused,
-	MouseMoved,
+	DeviceMouseMoved,
+	WindowMouseMoved,
 	MouseEntered,
 	MouseLeft,
 	MouseWheel,
@@ -345,10 +346,11 @@ impl<E> Events<E> {
 		let buffer = &mut self.buffer;
 		let chars = &mut self.chars;
 
+		use winit::WindowEvent::*;
 		events.poll_events(|event| {
-			if let winit::Event::WindowEvent { window_id: _, event } = event {
-				use winit::WindowEvent::*;
-				match event {
+			match event {
+				winit::Event::DeviceEvent{ device_id: _, event: winit::DeviceEvent::MouseMotion{ delta } } => bindings.get(&EventType::DeviceMouseMoved).map(|f| buffer.push(f(delta.into(), None))),
+				winit::Event::WindowEvent{ window_id: _, event } => match event {
 					KeyboardInput{ input: winit::KeyboardInput {
 							scancode,
 							state: ElementState::Pressed,
@@ -385,14 +387,15 @@ impl<E> Events<E> {
 					ReceivedCharacter(c) => chars.as_mut().map(|b| b.push(c)),
 					Focused(true) => bindings.get(&EventType::Focused).map(|f| buffer.push(f((0.0, 0.0), None))),
 					Focused(false) => bindings.get(&EventType::UnFocused).map(|f| buffer.push(f((0.0, 0.0), None))),
-					CursorMoved{ position, .. } => bindings.get(&EventType::MouseMoved).map(|f| buffer.push(f(position.into(), None))),
+					CursorMoved{ position, .. } => bindings.get(&EventType::WindowMouseMoved).map(|f| buffer.push(f(position.into(), None))),
 					CursorEntered{ .. } => bindings.get(&EventType::MouseEntered).map(|f| buffer.push(f((0.0, 0.0), None))),
 					CursorLeft{ .. } => bindings.get(&EventType::MouseLeft).map(|f| buffer.push(f((0.0, 0.0), None))),
 					MouseWheel{ delta, .. } => bindings.get(&EventType::MouseWheel).map(|f| buffer.push(f(convert_scroll_delta(delta), None))),
 					Refresh => bindings.get(&EventType::Refresh).map(|f| buffer.push(f((0.0, 0.0), None))),
-					_ => {None},
-				};
-			}
+					_ => None,
+				},
+				_ => None,
+			};
 		});
 	}
 }
